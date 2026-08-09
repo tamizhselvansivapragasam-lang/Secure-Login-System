@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Secure Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <nav class="navbar">
+
+        <div class="brand">
+            🔐 Secure System
+        </div>
+
+        <button
+            id="logoutButton"
+            class="logout-btn"
+        >
+            Logout
+        </button>
+
+    </nav>
+
+
+    <main class="dashboard-content">
+
+        <div class="welcome-card">
+
+            <div class="shield">
+                🛡️
+            </div>
+
+            <h1>
+                Welcome,
+                <span id="username"></span>!
+            </h1>
+
+            <p>
+                You have successfully logged into
+                the secure dashboard.
+            </p>
+
+        </div>
+
+
+        <div class="security-grid">
+
+            <div class="security-card">
+
+                <div class="card-icon">
+                    🔒
+                </div>
+
+                <h3>
+                    Password Protected
+                </h3>
+
+                <p>
+                    Your password is hashed before
+                    being stored.
+                </p>
+
+            </div>
+
+
+            <div class="security-card">
+
+                <div class="card-icon">
+                    🛡️
+                </div>
+
+                <h3>
+                    Input Validation
+                </h3>
+
+                <p>
+                    User input is checked before
+                    processing.
+                </p>
+
+            </div>
+
+
+            <div class="security-card">
+
+                <div class="card-icon">
+                    🎫
+                </div>
+
+                <h3>
+                    Session Management
+                </h3>
+
+                <p>
+                    Your login session is maintained
+                    until logout or expiration.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-box">
+
+            <h2>Security Status</h2>
+
+            <div class="status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    Session Active
+                </span>
+
+            </div>
+
+            <p id="sessionTime"></p>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* Check login */
+
+const loggedIn =
+    sessionStorage.getItem("loggedIn");
+
+
+if (loggedIn !== "true") {
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+/* Display username */
+
+const username =
+    sessionStorage.getItem("username");
+
+
+document.getElementById(
+    "username"
+).textContent = username || "User";
+
+
+/* Session timeout */
+
+const loginTime =
+    Number(
+        sessionStorage.getItem(
+            "loginTime"
+        )
+    );
+
+
+const SESSION_DURATION =
+    30 * 60 * 1000;
+
+
+/* Check session expiration */
+
+function checkSession() {
+
+    if (
+        !loginTime ||
+        Date.now() - loginTime >
+        SESSION_DURATION
+    ) {
+
+        sessionStorage.clear();
+
+        alert(
+            "Your session has expired. Please login again."
+        );
+
+        window.location.href =
+            "index.html";
+
+    }
+
+}
+
+
+/* Show remaining session time */
+
+function updateSessionTime() {
+
+    const remaining =
+        SESSION_DURATION -
+        (Date.now() - loginTime);
+
+
+    if (remaining <= 0) {
+
+        checkSession();
+
+        return;
+
+    }
+
+
+    const minutes =
+        Math.floor(
+            remaining / 60000
+        );
+
+
+    const seconds =
+        Math.floor(
+            (remaining % 60000) / 1000
+        );
+
+
+    document.getElementById(
+        "sessionTime"
+    ).textContent =
+        `Session expires in ${minutes}m ${seconds}s`;
+
+}
+
+
+setInterval(
+    updateSessionTime,
+    1000
+);
+
+
+updateSessionTime();
+
+
+/* Logout */
+
+document.getElementById(
+    "logoutButton"
+).addEventListener(
+    "click",
+    () => {
+
+        sessionStorage.clear();
+
+        window.location.href =
+            "index.html";
+
+    }
+);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Account</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="login-box">
+
+        <div class="logo">
+            🛡️
+        </div>
+
+        <h1>Create Account</h1>
+
+        <p class="subtitle">
+            Register for a secure account
+        </p>
+
+
+        <form id="registerForm">
+
+            <div class="input-group">
+
+                <label for="username">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Choose a username"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <div class="password-box">
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Create a strong password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        id="togglePassword"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Password requirements -->
+
+            <div class="requirements">
+
+                <p id="length">
+                    ❌ At least 8 characters
+                </p>
+
+                <p id="uppercase">
+                    ❌ One uppercase letter
+                </p>
+
+                <p id="lowercase">
+                    ❌ One lowercase letter
+                </p>
+
+                <p id="number">
+                    ❌ One number
+                </p>
+
+                <p id="special">
+                    ❌ One special character
+                </p>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    placeholder="Confirm your password"
+                    autocomplete="new-password"
+                    required
+                >
+
+            </div>
+
+
+            <div id="registerMessage"
+                 class="message">
+            </div>
+
+
+            <button
+                type="submit"
+                class="btn"
+            >
+                Create Account
+            </button>
+
+        </form>
+
+
+        <p class="register-link">
+
+            Already have an account?
+
+            <a href="index.html">
+                Login
+            </a>
+
+        </p>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* Elements */
+
+const registerForm =
+    document.getElementById("registerForm");
+
+const password =
+    document.getElementById("password");
+
+const confirmPassword =
+    document.getElementById("confirmPassword");
+
+const registerMessage =
+    document.getElementById("registerMessage");
+
+const togglePassword =
+    document.getElementById("togglePassword");
+
+
+/* Show / Hide password */
+
+togglePassword.addEventListener("click", () => {
+
+    if (password.type === "password") {
+
+        password.type = "text";
+
+        togglePassword.textContent = "🙈";
+
+    } else {
+
+        password.type = "password";
+
+        togglePassword.textContent = "👁";
+
+    }
+
+});
+
+
+/* Password strength checker */
+
+password.addEventListener("input", () => {
+
+    const value = password.value;
+
+
+    updateRequirement(
+        "length",
+        value.length >= 8
+    );
+
+
+    updateRequirement(
+        "uppercase",
+        /[A-Z]/.test(value)
+    );
+
+
+    updateRequirement(
+        "lowercase",
+        /[a-z]/.test(value)
+    );
+
+
+    updateRequirement(
+        "number",
+        /[0-9]/.test(value)
+    );
+
+
+    updateRequirement(
+        "special",
+        /[^A-Za-z0-9]/.test(value)
+    );
+
+});
+
+
+function updateRequirement(id, valid) {
+
+    const element =
+        document.getElementById(id);
+
+    if (valid) {
+
+        element.textContent =
+            "✅ " + element.textContent.substring(2);
+
+        element.classList.add("valid");
+
+    } else {
+
+        element.textContent =
+            "❌ " + element.textContent.substring(2);
+
+        element.classList.remove("valid");
+
+    }
+
+}
+
+
+/* Hash password */
+
+async function hashPassword(password) {
+
+    const encoder =
+        new TextEncoder();
+
+    const data =
+        encoder.encode(password);
+
+    const hashBuffer =
+        await crypto.subtle.digest(
+            "SHA-256",
+            data
+        );
+
+    const hashArray =
+        Array.from(
+            new Uint8Array(hashBuffer)
+        );
+
+    return hashArray
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
+
+}
+
+
+/* Registration */
+
+registerForm.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const username =
+            document
+                .getElementById("username")
+                .value
+                .trim();
+
+
+        const email =
+            document
+                .getElementById("email")
+                .value
+                .trim();
+
+
+        const passwordValue =
+            password.value;
+
+
+        const confirmValue =
+            confirmPassword.value;
+
+
+        registerMessage.textContent = "";
+
+        registerMessage.className =
+            "message";
+
+
+        /* Username validation */
+
+        if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+
+            showError(
+                "Username must be 3-20 characters and contain only letters, numbers or underscore."
+            );
+
+            return;
+
+        }
+
+
+        /* Email validation */
+
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+        if (!emailPattern.test(email)) {
+
+            showError(
+                "Please enter a valid email address."
+            );
+
+            return;
+
+        }
+
+
+        /* Password validation */
+
+        const strongPassword =
+            passwordValue.length >= 8 &&
+            /[A-Z]/.test(passwordValue) &&
+            /[a-z]/.test(passwordValue) &&
+            /[0-9]/.test(passwordValue) &&
+            /[^A-Za-z0-9]/.test(passwordValue);
+
+
+        if (!strongPassword) {
+
+            showError(
+                "Please create a stronger password."
+            );
+
+            return;
+
+        }
+
+
+        /* Confirm password */
+
+        if (passwordValue !== confirmValue) {
+
+            showError(
+                "Passwords do not match."
+            );
+
+            return;
+
+        }
+
+
+        /* Check existing account */
+
+        if (localStorage.getItem("secureUser")) {
+
+            showError(
+                "An account already exists on this browser."
+            );
+
+            return;
+
+        }
+
+
+        /* Hash password */
+
+        const passwordHash =
+            await hashPassword(passwordValue);
+
+
+        /*
+         * Store demo account.
+         *
+         * Notice that the plain-text password
+         * is never stored.
+         */
+
+        const user = {
+
+            username: username,
+
+            email: email,
+
+            passwordHash: passwordHash
+
+        };
+
+
+        localStorage.setItem(
+            "secureUser",
+            JSON.stringify(user)
+        );
+
+
+        registerMessage.textContent =
+            "Account created successfully!";
+
+        registerMessage.classList.add(
+            "success"
+        );
+
+
+        registerForm.reset();
+
+
+        setTimeout(() => {
+
+            window.location.href =
+                "index.html";
+
+        }, 1200);
+
+    }
+);
+
+
+function showError(message) {
+
+    registerMessage.textContent =
+        message;
+
+    registerMessage.classList.add(
+        "error"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
